@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>AquaNova AR</title>
+
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <script>
+    // Label selalu menghadap kamera
+    AFRAME.registerComponent('hadap-kamera', {
+      init: function () { this.posisi = new THREE.Vector3(); },
+      tick: function () {
+        var cam = this.el.sceneEl.camera;
+        if (!cam) return;
+        cam.getWorldPosition(this.posisi);
+        this.el.object3D.lookAt(this.posisi);
+      }
+    });
+  </script>
+
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #0b2545; }
+    #petunjuk {
+      position: fixed; left: 0; right: 0; bottom: 28px; z-index: 10;
+      text-align: center; pointer-events: none;
+      font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    #petunjuk span {
+      display: inline-block; padding: 10px 20px; border-radius: 999px;
+      background: rgba(11, 37, 69, .85); color: #fff; font-size: 15px;
+      border: 1px solid #d4af37;
+    }
+    #petunjuk.sembunyi { display: none; }
+  </style>
+</head>
+<body>
+  <div id="petunjuk"><span>Arahkan kamera ke marker AquaNova</span></div>
+
+  <a-scene
+    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1;"
+    color-space="sRGB"
+    renderer="colorManagement: true"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <a-light type="ambient" color="#ffffff" intensity="0.9"></a-light>
+    <a-light type="directional" color="#ffffff" intensity="1.1" position="0.6 1 1"></a-light>
+
+    <a-entity id="target" mindar-image-target="targetIndex: 0">
+
+      <!-- bayangan lembut dan cincin emas di bidang marker -->
+      <a-circle radius="0.3" position="0 0 0.002"
+        material="color: #000000; opacity: 0.25; transparent: true"></a-circle>
+      <a-ring radius-inner="0.33" radius-outer="0.35" position="0 0 0.004"
+        material="color: #d4af37; shader: flat"></a-ring>
+
+      <!-- wadah: sumbu Y objek = tegak lurus marker. Ubah scale untuk memperbesar/memperkecil -->
+      <a-entity rotation="90 0 0" scale="1 1 1">
+
+        <!-- tumbler yang berputar pelan -->
+        <a-entity animation="property: rotation; to: 0 360 0; dur: 14000; easing: linear; loop: true">
+          <a-cone position="0 0.22 0" radius-bottom="0.125" radius-top="0.14" height="0.44" segments-radial="48"
+            material="color: #0b2545; metalness: 0.3; roughness: 0.3"></a-cone>
+          <a-cylinder position="0 0.016 0" radius="0.132" height="0.032" segments-radial="48"
+            material="color: #d4af37; metalness: 0.5; roughness: 0.25"></a-cylinder>
+          <a-cylinder position="0 0.30 0" radius="0.1385" height="0.012" segments-radial="48"
+            material="color: #d4af37; metalness: 0.5; roughness: 0.25"></a-cylinder>
+          <a-cylinder position="0 0.452 0" radius="0.148" height="0.024" segments-radial="48"
+            material="color: #f4f6f8; metalness: 0; roughness: 0.35"></a-cylinder>
+          <a-sphere position="0 0.464 0" radius="0.1" scale="1 0.32 1"
+            material="color: #f4f6f8; metalness: 0; roughness: 0.35"></a-sphere>
+          <a-cylinder position="0.05 0.60 0" rotation="0 0 -8" radius="0.016" height="0.24"
+            material="color: #2ec4b6; metalness: 0; roughness: 0.5"></a-cylinder>
+        </a-entity>
+
+        <!-- label nama produk -->
+        <a-entity position="0 0.95 0" hadap-kamera>
+          <a-text value="AquaNova" align="center" color="#d4af37" width="3" position="0 0.07 0"></a-text>
+          <a-text value="Smart Tumbler 600 ml" align="center" color="#ffffff" width="1.1" position="0 -0.05 0"></a-text>
+        </a-entity>
+
+      </a-entity>
+    </a-entity>
+  </a-scene>
+
+  <script>
+    var target = document.querySelector('#target');
+    var petunjuk = document.querySelector('#petunjuk');
+    target.addEventListener('targetFound', function () { petunjuk.classList.add('sembunyi'); });
+    target.addEventListener('targetLost', function () { petunjuk.classList.remove('sembunyi'); });
+  </script>
+</body>
+</html>
